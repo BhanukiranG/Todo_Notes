@@ -26,14 +26,17 @@ object AppModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context,
         authInterceptor: AuthInterceptor,
         tokenAuthenticator: TokenAuthenticator
     ): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
+        val chuckerInterceptor = com.chuckerteam.chucker.api.ChuckerInterceptor.Builder(context).build()
         return OkHttpClient.Builder()
             .addInterceptor(logging)
+            .addInterceptor(chuckerInterceptor)
             .addInterceptor(authInterceptor)
             .authenticator(tokenAuthenticator)
             .connectTimeout(60, TimeUnit.SECONDS)
@@ -70,8 +73,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideTodoRepository(
-        api: TodoApi
+        api: TodoApi,
+        dao: com.main.todonotes.data.local.dao.TodoDao
     ): TodoRepository {
-        return TodoRepositoryImpl(api)
+        return TodoRepositoryImpl(api, dao)
     }
 }

@@ -49,8 +49,7 @@ fun TodoListScreen(
                     onLogout()
                 }
                 is TodoEvent.TodoSaved -> {
-                    showBottomSheet = false
-                    newTaskTitle = ""
+                    // Task saved successfully
                 }
                 else -> {}
             }
@@ -65,6 +64,7 @@ fun TodoListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface)
+                    .statusBarsPadding()
                     .padding(horizontal = 16.dp, vertical = 24.dp)
             ) {
                 Row(
@@ -179,6 +179,12 @@ fun TodoListScreen(
                             onClick = { 
                                 if(newTaskTitle.trim().isNotEmpty()) {
                                     viewModel.createTodo(newTaskTitle.trim())
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        if (!sheetState.isVisible) {
+                                            showBottomSheet = false
+                                        }
+                                    }
+                                    newTaskTitle = ""
                                 }
                             },
                             enabled = newTaskTitle.trim().isNotEmpty(),

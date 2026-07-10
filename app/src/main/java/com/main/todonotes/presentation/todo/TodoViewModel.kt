@@ -11,6 +11,8 @@ import com.main.todonotes.domain.repository.TodoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,17 +32,22 @@ class TodoViewModel @Inject constructor(
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
+        observeTodos()
         loadTodos()
+    }
+
+    private fun observeTodos() {
+        todoRepository.getTodos().onEach { localTodos ->
+            todos = localTodos
+        }.launchIn(viewModelScope)
     }
 
     fun loadTodos() {
         viewModelScope.launch {
             isLoading = true
-            val result = todoRepository.getTodos()
-            if (result.isSuccess) {
-                todos = result.getOrNull() ?: emptyList()
-            } else {
-                _eventFlow.emit(TodoEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Failed to load todos"))
+            val result = todoRepository.syncTodos()
+            if (result.isFailure) {
+                _eventFlow.emit(TodoEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Failed to sync todos"))
             }
             isLoading = false
         }
@@ -49,24 +56,20 @@ class TodoViewModel @Inject constructor(
     fun createTodo(title: String) {
         if (title.isBlank()) return
         viewModelScope.launch {
-            isLoading = true
+            // We don't set isLoading here to make it seamless
             val result = todoRepository.createTodo(title)
             if (result.isSuccess) {
-                loadTodos()
                 _eventFlow.emit(TodoEvent.TodoSaved)
             } else {
                 _eventFlow.emit(TodoEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Failed to create todo"))
             }
-            isLoading = false
         }
     }
 
     fun updateTodo(id: String, title: String, isCompleted: Boolean) {
         viewModelScope.launch {
             val result = todoRepository.updateTodo(id, title, isCompleted)
-            if (result.isSuccess) {
-                loadTodos()
-            } else {
+            if (result.isFailure) {
                 _eventFlow.emit(TodoEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Failed to update todo"))
             }
         }
@@ -75,9 +78,7 @@ class TodoViewModel @Inject constructor(
     fun deleteTodo(id: String) {
         viewModelScope.launch {
             val result = todoRepository.deleteTodo(id)
-            if (result.isSuccess) {
-                loadTodos()
-            } else {
+            if (result.isFailure) {
                 _eventFlow.emit(TodoEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Failed to delete todo"))
             }
         }
