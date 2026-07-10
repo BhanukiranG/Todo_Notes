@@ -4,6 +4,11 @@
     android:height="108dp"
     android:viewportWidth="1024"
     android:viewportHeight="1024">
+    
+    <path
+        android:fillColor="#4F46E5"
+        android:pathData="M 220,0 h 584 a 220,220 0 0 1 220,220 v 584 a 220,220 0 0 1 -220,220 h -584 a 220,220 0 0 1 -220,-220 v -584 a 220,220 0 0 1 220,-220 Z" />
+
     <group
         android:translateX="-20"
         android:translateY="30">
@@ -13,6 +18,7 @@
             android:strokeWidth="80"
             android:strokeLineCap="round"
             android:strokeLineJoin="round" />
+            
         <path
             android:fillColor="#FFFFFF"
             android:pathData="M 674 634 a 40 40 0 1 0 0 80 a 40 40 0 1 0 0 -80" />

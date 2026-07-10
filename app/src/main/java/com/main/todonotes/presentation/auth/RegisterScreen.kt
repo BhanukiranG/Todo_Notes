@@ -86,7 +86,7 @@ fun RegisterScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Tasks",
+                        text = "Suchika",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
@@ -115,6 +115,10 @@ fun RegisterScreen(
                     label = { Text("Email Address") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Next
+                    ),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -137,6 +141,13 @@ fun RegisterScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                    ),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                        onDone = { viewModel.onEvent(AuthUiEvent.Register) }
+                    ),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
@@ -191,7 +202,10 @@ fun RegisterScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { onNavigateBackToLogin() }
+                        modifier = Modifier.clickable {
+                            viewModel.onEvent(AuthUiEvent.ClearState)
+                            onNavigateBackToLogin()
+                        }
                     )
                 }
             }

@@ -41,9 +41,13 @@ fun AppNavigation(
         return
     }
 
+    val startDestination = androidx.compose.runtime.remember {
+        if (isLoggedIn == true) Screen.TodoList.route else Screen.Login.route
+    }
+
     NavHost(
         navController = navController,
-        startDestination = if (isLoggedIn == true) Screen.TodoList.route else Screen.Login.route
+        startDestination = startDestination
     ) {
         composable(Screen.Login.route) {
             LoginScreen(

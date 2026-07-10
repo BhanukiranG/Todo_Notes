@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.main.todonotes.domain.model.Todo
 import kotlinx.coroutines.flow.collectLatest
@@ -36,8 +38,10 @@ fun TodoListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     var newTaskTitle by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
+    val focusRequester = remember { androidx.compose.ui.focus.FocusRequester() }
 
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
@@ -81,14 +85,14 @@ fun TodoListScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Tasks",
+                            text = "Suchika",
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     }
                     IconButton(
-                        onClick = { viewModel.logout() },
+                        onClick = { showLogoutDialog = true },
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(50))
                             .size(40.dp)
@@ -123,6 +127,24 @@ fun TodoListScreen(
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             if (viewModel.isLoading && viewModel.todos.isEmpty()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (viewModel.todos.isEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "No tasks yet!",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Tap the + button to add a new task",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -160,6 +182,10 @@ fun TodoListScreen(
                         .fillMaxWidth()
                         .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
                 ) {
+                    LaunchedEffect(Unit) {
+                        kotlinx.coroutines.delay(100)
+                        focusRequester.requestFocus()
+                    }
                     TextField(
                         value = newTaskTitle,
                         onValueChange = { newTaskTitle = it },
@@ -171,7 +197,26 @@ fun TodoListScreen(
                             unfocusedIndicatorColor = Color.Transparent
                         ),
                         textStyle = MaterialTheme.typography.headlineSmall.copy(color = MaterialTheme.colorScheme.onSurface),
-                        modifier = Modifier.fillMaxWidth()
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Sentences,
+                            imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                        ),
+                        keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                            onDone = {
+                                if(newTaskTitle.trim().isNotEmpty()) {
+                                    viewModel.createTodo(newTaskTitle.trim())
+                                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                        if (!sheetState.isVisible) {
+                                            showBottomSheet = false
+                                        }
+                                    }
+                                    newTaskTitle = ""
+                                }
+                            }
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -197,6 +242,29 @@ fun TodoListScreen(
                     }
                 }
             }
+        }
+
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Logout", fontWeight = FontWeight.Bold) },
+                text = { Text("Are you sure you want to logout?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLogoutDialog = false
+                            viewModel.logout()
+                        }
+                    ) {
+                        Text("Logout", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }

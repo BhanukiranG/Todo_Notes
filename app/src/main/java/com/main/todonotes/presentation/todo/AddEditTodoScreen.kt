@@ -57,7 +57,18 @@ fun AddEditTodoScreen(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Sentences,
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                    ),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                        onDone = {
+                            if (title.isNotBlank()) {
+                                viewModel.createTodo(title)
+                            }
+                        }
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(

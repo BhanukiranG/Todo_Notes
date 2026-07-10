@@ -32,6 +32,15 @@ fun LoginScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var passwordVisible by remember { mutableStateOf(false) }
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val versionName = remember(context) {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName
+        } catch (e: Exception) {
+            "Unknown"
+        }
+    }
+
     LaunchedEffect(key1 = true) {
         viewModel.eventFlow.collectLatest { event ->
             when (event) {
@@ -79,7 +88,7 @@ fun LoginScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Tasks",
+                        text = "Suchika",
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
@@ -105,6 +114,10 @@ fun LoginScreen(
                         label = { Text("Email Address") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
+                            imeAction = androidx.compose.ui.text.input.ImeAction.Next
+                        ),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -125,6 +138,13 @@ fun LoginScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                            imeAction = androidx.compose.ui.text.input.ImeAction.Done
+                        ),
+                        keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                            onDone = { viewModel.onEvent(AuthUiEvent.Login) }
+                        ),
                         shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = MaterialTheme.colorScheme.outline,
@@ -173,7 +193,10 @@ fun LoginScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { onNavigateToRegister() }
+                            modifier = Modifier.clickable {
+                                viewModel.onEvent(AuthUiEvent.ClearState)
+                                onNavigateToRegister()
+                            }
                         )
                     }
                 }
@@ -181,7 +204,7 @@ fun LoginScreen(
 
             // Footer Space
             Text(
-                text = "v1.0.4 • Discipline & Clarity",
+                text = "v$versionName • Discipline & Clarity",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.outline,
                 modifier = Modifier
