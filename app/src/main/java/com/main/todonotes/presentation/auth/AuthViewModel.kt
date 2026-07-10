@@ -37,7 +37,13 @@ class AuthViewModel @Inject constructor(
             is AuthUiEvent.PasswordChanged -> password = event.password
             is AuthUiEvent.Login -> login()
             is AuthUiEvent.Register -> register()
+            is AuthUiEvent.ClearState -> clearState()
         }
+    }
+
+    private fun clearState() {
+        email = ""
+        password = ""
     }
 
     private fun login() {
@@ -62,6 +68,7 @@ class AuthViewModel @Inject constructor(
             isLoading = true
             val result = authRepository.login(trimmedEmail, trimmedPassword)
             if (result.isSuccess) {
+                clearState()
                 _eventFlow.emit(AuthEvent.LoginSuccess)
             } else {
                 emitEvent(AuthEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Login failed"))
@@ -92,6 +99,7 @@ class AuthViewModel @Inject constructor(
             isLoading = true
             val result = authRepository.register(trimmedEmail, trimmedPassword)
             if (result.isSuccess) {
+                clearState()
                 _eventFlow.emit(AuthEvent.RegisterSuccess)
             } else {
                 emitEvent(AuthEvent.ShowSnackbar(result.exceptionOrNull()?.message ?: "Registration failed"))
@@ -112,6 +120,7 @@ sealed class AuthUiEvent {
     data class PasswordChanged(val password: String) : AuthUiEvent()
     object Login : AuthUiEvent()
     object Register : AuthUiEvent()
+    object ClearState : AuthUiEvent()
 }
 
 sealed class AuthEvent {
