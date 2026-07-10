@@ -48,6 +48,16 @@ class AuthViewModel @Inject constructor(
             emitEvent(AuthEvent.ShowSnackbar("Email and password cannot be empty"))
             return
         }
+
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+            emitEvent(AuthEvent.ShowSnackbar("Please enter a valid email address"))
+            return
+        }
+
+        if (trimmedPassword.length < 6) {
+            emitEvent(AuthEvent.ShowSnackbar("Password must be at least 6 characters long"))
+            return
+        }
         viewModelScope.launch {
             isLoading = true
             val result = authRepository.login(trimmedEmail, trimmedPassword)
@@ -66,6 +76,16 @@ class AuthViewModel @Inject constructor(
         
         if (trimmedEmail.isBlank() || trimmedPassword.isBlank()) {
             emitEvent(AuthEvent.ShowSnackbar("Email and password cannot be empty"))
+            return
+        }
+        
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches()) {
+            emitEvent(AuthEvent.ShowSnackbar("Please enter a valid email address"))
+            return
+        }
+        
+        if (trimmedPassword.length < 6) {
+            emitEvent(AuthEvent.ShowSnackbar("Password must be at least 6 characters long"))
             return
         }
         viewModelScope.launch {
